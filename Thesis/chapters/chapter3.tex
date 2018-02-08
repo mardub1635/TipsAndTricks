@@ -1,0 +1,150 @@
+%\documentclass{UUThesisTemplate}
+%\begin{document}
+\chapter{\label{chap4}Methodology}%
+In this chapter, we describe the approach common to all our papers. We motivate the most important decisions about the model we defend. We briefly describe  the tools and corpora we use, and finally we discuss the annotation instructions.
+%
+\section{Defining the Task\label{bottomup}}
+%\subsection{The Bottom-Up Approach to Rhetorical Figures\label{bottomup}}
+\label{secGeneric}
+
+%
+So far, the state of the art describes two approaches for rhetorical figures. The first consists of trying to make systems for all repetitive figures \citep{gawr,hromada}. This approach is the most general, but it prevents us from going deeply into the problem, the development of a corpus, the exploration of data. The second approach consists of keeping one figure into focus: epanaphora \citep{Strommer2011}. Our way of proceeding is closer to the second approach; we focus initially on chiasmus, but with the aim to later apply our best method to the two other figures: epanaphora and epiphora. 
+%\subsection{Binary Detection Versus Ranking}
+\noindent
+%So far repetitive figure detection has been seen as a binary classification problem. Binary approach is very convenient in computational linguistics for two reasons. First because computational linguistics is a subdomain of computer science. Computer science always boils down to binary language and binary logic thus it is a dominant culture in this field. A second reason why binary approach is privileged in computational linguistics is that, in some cases, it makes more applications possible afterwards, for instance multiword expression is a binary classification task partly because that helps creating dictionaries after the collect is done. In all previous research on repetitive figure the ultimate aim was not to understand how works the detection. For \cite{gawr,hromada} and to a smaller extent for \cite{Strommer2011} the focus is on the application behind, making metric of genre \citep{Strommer2011}, exploring a multilingual corpus \citep{hromada}, developing a visual tool \citep{gawr}. Under this context, the question of a more nuanced approach is avoided because it is not set into focus.
+
+%Two things push us to go beyond this approach. First we believe that the question of detecting retorical figure is complex, interesting and should not be denied its complexity because of a subordination to another task. Second, our domain is different than for multiword expression (term specifically used in linguistics). By focusing on figure of speech, we are bridging the frontier, not between computer science and linguistics, but between computer science and literature. Binary approach is definitely not belonging to the later one. As says \cite{hammond2013}:
+%\begin{quotation}
+%A major focus of literary scholarship since the
+%early twentieth century has been the semantic multiplicity of literary language. Such scholarship has argued that literature, distinct from other forms of discourse, may be deliberately ambiguous or polysemous and that literary analysis, distinct from other analytic schools, should thus aim not to resolve ambiguity but to describe and explore it. 
+%\end{quotation}
+
+One important element in our approach is that we redefine it as a ranking task.
+%Even if someone could design the perfect detector that would output all and only the repetitions provoking a rhetorical figure, it is not certain that this would be the ideal system. % Chiasmus, epanaphora and epiphora like metaphor \citep{dunn2013}, can be seen as a graded phenomenon with prototypical examples and controversial/borderline cases such as Examples~\ref{exChina}, \ref{exUs}, \ref{exKnow}.
+%Thus even if someone could design the perfect detector that would output all and only the repetitions provoking a rhetorical figure, this system would clash with the interest of literature analysis. And we believe that what say \cite{hammond2013} is true on interpretation about repetitions of words. 
+% There is two reasons for that. %First, we expect the frontier between a non figure repetition and repetitive figure of speech to be so subtle that it should not be the role of the computer to ultimately decide on this sharp distinction. Second, 
+The reason for this is that we believe that ranking figures is more close to the reality of the situation than just binary detection.  Indeed, some candidates for chiasmus, epanaphora and epiphora are easy to classify as real examples (\ref{exComedy}, \ref{exDidI}, \ref{exKind}); and others are easy to classify as irrelevant instances (\ref{exCopy}, \ref{exIts}, \ref{exTent}); while some are unclear cases that combine properties of real examples and irrelevant instances (\ref{exGod}, \ref{exIm}, \ref{exIt}).
+\vspace{0.2cm}
+\paragraph{Clear Cases of Chiasmus, Epanaphora, Epiphora}
+\nnumsentence{\mn{Comedy} without \mn{darkness} rapidly becomes trivial.\\
+ And \mn{darkness} without \mn{comedy} rapidly becomes unbearable. \label{exComedy}}%
+%
+\vspace{-0.8cm}
+\nnumsentence{\mn{Did I} offer peace today?\\
+\mn{Did I} bring a smile to someone's face?\\
+\mn{Did I} say words of healing?\\
+\mn{Did I} let go of my anger and resentment?\\
+\mn{Did I} forgive?\\
+\mn{Did I} love?\\
+ \label{exDidI}}%
+%
+\nnumsentence{The first \mn{is to be kind.}\\
+The second \mn{is to be kind.}\\
+And the third \mn{is to be kind.} \label{exKind}}%
+%
+\vspace{-0.5cm}
+\paragraph{Non-Figure Repetitions}
+\nnumsentence{The \mn{copies} can only repeat themselves \mn{word} for \mn{word}. A virus is a \mn{copy}. \label{exCopy}}%
+%
+\vspace{-0.8cm}
+\nnumsentence{\mn{It's} like fashion, like flares go out then skinny jeans come in, people want something fresh.\\
+\mn{It's }the strongest ever urban scene at the moment and I hope it can progress and keep getting stronger and be the base for something larger. \label{exIts}}%
+%
+\vspace{-1.2cm}
+\nnumsentence{Those powers that control the tent are not threatened at all by any activity that you engage in, in the shadows, that's not moving toward the \mn{tent}.\\
+And I am rather convinced that we have a generation that is so preoccupied with life in the shadows, they never even focus on getting to the sunlight where you open up the big \mn{tent}. \label{exTent}}%
+%
+\vspace{-0.5cm}
+\paragraph{Unclear Cases}
+\nnumsentence{No \mn{nation} can have a monopoly on \mn{God}, but \mn{God} will bless any \mn{nation} whose people seek and honour His will as revealed by Christ and declared through the Holy Spirit. \label{exGod}}%
+%
+\vspace{-0.8cm}
+\nnumsentence{\mn{I'm} not good at hiding my feelings.\\
+\mn{I'm} also not good at lying.\\
+\mn{I'm} very open about everything. \label{exIm}}%
+%
+\vspace{-0.8cm}
+\nnumsentence{It feels intimate, doesn't \mn{it}?\\
+I love \mn{it}. \label{exIt}\vspace{0.5cm}}%
+%
+
+\noindent
+The fact that borderline cases like Examples~\ref{exGod}, \ref{exIm} and \ref{exIt} exist is not surprising, and is not necessarily a problem in literature. \cite{hammond2013} underlines that the study of literature is nourished by the plurality of interpretations of texts. Examples~\ref{exGod}, \ref{exIm} and \ref{exIt} can be interpreted as either rhetorical figures or random repetitions by a literary analyst. The choice depends on the interpretation that someone wishes to make of the text, and is outside our control as researchers. 
+Thus, eliminating those examples would be an arbitrary choice made by us, and the machine would not facilitate the plurality of interpretation desired by humans. If overused, a detector with only a binary output could even create a bias toward the machine that would normalise the interpretation assigned to repetitions of words.
+
+To solve this issue, and make an effective detector that gives extended control to the literary analyst, we decide to see the problem not as a binary task but as a ranking task. The machine should give all the instances of repetitions,  but in a sorted manner: from very prototypical true instances (like Examples~\ref{exKind}, \ref{exCopy}, \ref{exIts}) to less and less likely instances. Thus users may benefit from the help of the machine without relinquishing their autonomy to choose which borderline cases are useful for their literary interpretation.
+\section{Evaluation}
+%\subsection{Evaluation and Metrics}
+Redesigning the task as one of ranking is the easiest way to take into account the gradedness of the phenomena we search for. However, it makes the evaluation less straightforward. In an ideal world, we would like to have a set of thousands of repetitions of each category (chiasmus, epanaphora, epiphora) all ranked by degree of rhetorical effect. Then we would try to achieve this exact ranking with a machine. The problem is that creating such a corpus would be very difficult and time consuming. Annotation time, given the noise generated by repetition extraction, is the real bottleneck of the detection problem. Apart from the fact that it is very time-consuming to annotate all candidates, it is very challenging for an annotator to sort them into a complete ranking. 
+
+As a practical compromise, we therefore limit annotation to three categories: True, False and Borderline. And instead of evaluating only by precision and recall, we use average precision, which measures not binary decisions, but whether true instances have been ranked higher than irrelevant cases. Moreover, when using data annotated by multiple annotators we count as True only those instances that have been annotated as True by all annotators. In this way, we make sure that systems are evaluated with respect to their capacity to rank good, prototypical instances of a figure above less good instances. We consider this a reasonable compromise between the theoretical ideal of having a complete ranking of candidates and the practical necessity of making annotation and evaluation feasible. Finally, our use of a three-way categorisation into True, False and Borderline makes it possible to apply more fine-grained evaluation methods at a later time.
+
+As mentioned above, the most important metric for our task measures the ranking capacity of the machine and is called \key{average precision}.
+Average precision is calculated on the basis of the top \textit{n} results in the extracted list, where \textit{n} includes all positions in the list until all relevant instances have been retrieved \citep{Zhang2009}. The average precision is expressed by the following formula:
+
+\begin{flushleft}
+\begin{equation}
+  \sum_{r}\nolimits \frac{P@r}{R}
+\end{equation}
+
+$r$ = rank for each relevant instance\\
+$P@r$ = precision at rank $r$\\
+$R$ = number of relevant instances in gold standard\\
+
+\end{flushleft}
+%Redesigning the task into a ranking one is the easiest way to take into account the gradedness of the phenomena we search for. However, it makes the evaluation less straightforward. In an ideal world, we would like to have a set of thousands of repetitions of each category (chiasmus, epanaphora, epiphora) all ranked by rhetorical effect power. Then we would try to achieve this exact ranking with a machine. The problem is that creating such a corpus would be very difficult and time consuming. Annotation time, given the noise generated by repetition extraction, is the real bottleneck of the detection problem. Besides the fact that it is very time-consuming to annotate all candidates, it is a very challenging task for an annotator to sort them into a complete ranking. As a practical compromise, we therefore limit annotation to three categories: True, False and Borderline. However, instead of evaluating only by precision and recall, we use average precision, which does not measure only binary decisions but whether true instances have been ranked higher than irrelevant cases. Moreover, when using data annotated by multiple annotators we count as True only those instances that have been annotated as True by all annotators. In this way we make sure that systems are evaluated with respect to their capacity to rank good, prototypical instances of a figure above all other. We consider this a reasonable compromise between the theoretical ideal of having a complete ranking of candidates and the practical necessity of making annotation and evaluation feasible. Finally, the fact that we have used a three-way categorisation into True, False and Borderline makes it possible to later apply more fine grained evaluation methods.
+%
+%While average precision, unlike precision and recall, is sensitive to the ranking of candidates, it nevertheless presupposes that we can identify which candidates to regard as True and False respectively. However, as noted earlier, it is practically impossible to exhaustively annotate all instances given the needle-in-the-haystack character of the problem.  For instance, in a single book, there can be many thousands of candidates \citep{dubremetz2015} for only one real chiasmus to be found.
+%Luckily, treating the task as a ranking task helps us manage this problem as well. Here we seek inspiration from another field of computational linguistics: information retrieval targeted at the world wide web, because the web cannot be fully annotated and a very small percentage of the web pages is relevant to a given request. As described already fifteen years ago by Chowdhury
+%\cite[p.213]{Chowdhury1999}, in such a situation, calculating the absolute recall is impossible. However, we can get a rough estimate of the recall by comparing different search engines. For instance Clarke and Willett \cite[p.186]{Willett1997}, working with Altavista, Lycos and Excite, made a pool of relevant documents for a particular query by merging the top outputs of the three engines. We base our evaluation system on the same principle: through our experiments our different ``chiasmus/epanaphora/epiphora retrieval engines'' will return different hits. We annotate manually the top hundreds of those hits and obtain a pool of relevant (and irrelevant) inversions. In this way, we can measure average precision in the top hundreds without having to do exhaustive annotation.
+
+
+\section{Ranking Model}
+We propose a standard linear model to rank candidate instances:
+\begin{displaymath}
+f(r)=\sum\limits_{i=1}^n x_i \cdot w_i
+\end{displaymath}
+where $r$ is a candidate pattern, $x_i$ is a set of feature values extracted from $r$, and $w_i$ is the weight associated with feature $x_i$. Given candidates $r_1$ and $r_2$, $f(r_1) > f(r_2)$ means that $r_1$ is more likely to be a true figure of speech than $r_2$, according to the model. 
+
+We choose the linear model for its simplicity. As it just adds (weighted) features, a human can easily interpret the results. This allowed us in \Pref{paper1} to design detectors using manual tuning when no data was yet available for automatic tuning. Once we have accumulated enough training data, we train the system through a special case of the linear model: logistic regression \citep{Pedregosa2011}. This algorithm assigns a probability to each instance. This not only allows us to do ranking (like we did with the manually tuned system) but also to give a precision and relative recall score, because every instance with a score above 0.5 is considered a true instance by the model. Moreover, we can adjust the probability threshold if we want to favour precision over recall or vice versa.
+
+
+
+\section{Corpora and Tools}
+All corpora are in English. In all papers we use extracts from Europarl \citep{koehn2005} as our main training and test sets. This is a corpus of political discussions commonly used in natural language processing because it is large (several million words), and is written in a consistent English generic enough to make the model applicable to other genres like novels. In \Pref{paper2} and \Pref{paper4} we additionally use some other corpora, but only for test purposes; one is an anthology of Sherlock Holmes stories (\Pref{paper2}) and the others are lists of titles and quotations downloaded from the Internet (\Pref{paper4}). If the experiments work on those other corpora, this will mean that the choice of Europarl was generic enough to make a robust system over several genres.
+
+In \Pref{paper1} our tool of implementation is the lemmatiser treetagger, for lemmatisation and tokenisation \citep{Schmid}. In Papers~\ref{paper2}, \ref{paper3}, \ref{paper4} we use Stanford CoreNLP \citep{manning2014} and the Stanford parser in order to get not only lemmatisation and tokenisation but also information about syntactic structure that is important for detection of chiasmus. The implementation of our own system is done in Python, and we use scikit-learn \citep{Pedregosa2011} for all machine learning tasks.
+%
+
+\section{Annotation}
+\subsection{\textit{What} Are We Annotating?}
+An important common trait of all our studies (Papers I–IV) is the selective way in which we choose to annotate our training and test data. Indeed we do not annotate all the candidates extracted by the machine. Part of the contribution of our research consists in exploring methods for saving time during annotation. For that, we explore how to preselect the annotation set during the training phase, and how to limit the evaluation set during the test phase. %
+\paragraph{Annotation of Training Data}
+For training data, two slightly different approaches have been explored for annotating chiasmus (Papers~\ref{paper1}--\ref{paper3})  and annotating epanaphora/epiphora (Paper~\ref{paper4}). This is because we had to adapt to two different types of problems. For chiasmus, the ratio of true instances to candidates (which is already very small for all the figures), is much smaller than for epanaphora and epiphora. Additionally, unlike epanaphora, chiasmus never benefited from research exploring relevant filtering features. Thus, for chiasmus we began by designing different ad hoc detectors with weights entered manually. For instance, we first assumed that stopwords were important discriminative features and started with an arbitrary large negative number ($-100$), then we empirically reduced this number to balance it against other important features that we gradually added after observing the type of false instances up-ranked by the machine. Each time a new set of features or weights was tried we annotated all the instances ranked above 200 by the machine. This approach is actually close to active learning, %\citep{Yarowsky1995}
+ except that all the tuning is done manually. We started from a corpus with no annotation at all and thus no positive examples to train on. At each iteration our number of examples increased but not enough to train automatically. (The number of new positive examples is very small at each iteration, one or two at best.)  That is why, in Papers~I and II, we re-evaluate the weighting and the features manually instead of automatically, during what we call the tuning phase. Once our ranking seemed satisfactory, and once we could not rank up new positive examples, we stopped this tuning process on the training set and moved on to the test phase. In Paper III, we had finally accumulated a sufficient number of training instances to use machine learning to weight features.
+
+For epanaphora/epiphora, the situation was slightly better than for chiasmus, and our preselection protocol for training was thus simpler. We already had, thanks to \cite{Strommer2011}, an idea of three positive features working for epanaphora and transposable to epiphora (number of sentences equal to or greater than three, presence of ``strong'' punctuations (!,?), sentence length less than ten words). Thus, we directly annotated every instance that matched any of those criteria, without trying manual weighting on each of them. This gave us enough examples to use machine learning from the start.
+\paragraph{Annotation of Test Data}
+In the test phase, the annotation protocol was kept the same for each figure and all papers (Papers \ref{paper1}--\ref{paper4}). We apply the system on an independent two million word corpus. On this test corpus, the machine ranks the candidates for chiasmus/epanaphora/epiphora. Depending on the figure we are looking for, the output ranges from a couple of thousand candidates to a million, of which we choose to annotate only the top 200 instances given by the systems we are testing. The system that not only has the largest number of positive examples above this limit but also manages to highly rank those positive examples is then considered the best. All instances used for evaluation were annotated by two annotators, and only instances considered as True by both annotators were counted
+as positive instances.\footnote{Double annotation was occasionally also used for training data, to check inter-annotator agreement, but most of the training data was only annotated by one person.}
+
+The decision to annotate only a partial quantity of instances in the corpus has  drastically reduced the annotation time. Instead of annotating a couple of million examples of chiasmus, we only had to annotate a couple of thousand. And instead of annotating a couple of thousand candidates for epanaphora/epiphora, we annotated a couple of hundred. The drawback of this approach is that we will never really know what the recall of our machine on our corpus is, because the recall at test time is only relative to the union of the top 200 candidates of each system.
+\subsection{\textit{How} Are We Annotating?\label{secHowAnnot}}
+To the best of our knowledge, there are no existing guidelines for annotation of repetitive figures. In fact, it is an extremely controversial question because of the high valuation of ambiguity in literature described by \cite{hammond2013}. Another reason why such guidelines have not been developed is that under each definition of repetitive figures, there is such a diversity of linguistic phenomena, effects and intensity that we are never certain if we have a full description of all the existing subtypes. Thus a case-by-case discussion, at least when the example is not prototypical, as in Examples~\ref{exComedy}, \ref{exDidI}, \ref{exKind}, is more appropriate. \cite{Strommer2011} asks the annotators if the repetition is ``intentional'' by checking if it produces ``emphasis, clarity, amplification or emotional effect'' \citep[p. 40]{Strommer2011}. This instruction leaves some liberty to the annotators as it is up to them to decide if they feel an emotional effect or not. We do not know what the precise criterion is that separates a rhetorical repetition from a non-rhetorical one, so we leave it to the intuition of the annotators, as \cite{Strommer2011} did. However, we can definitely report that when discussing the annotations, some questions were repeatedly asked to help with decisions. These are:
+\begin{itemize}
+\item Does this instance have a similar structure to another example previously annotated? In particular, is this example reminiscent of an example often cited in dictionaries and stylistic handbooks?
+\item If we replace one of the repeated words with a synonym, do we lose an effect in the rhythm, the meaning, or the emotional impact? 
+\item  If we had to translate the sentences that contain this repetitive figure into a very different language, like Japanese, would we have to reproduce this repetition at almost any cost?
+\end{itemize} 
+\noindent
+%To the best of our knowledge, it is the first time such discriminative questions are explicitly formulated in any research on repetitive figures. 
+\noindent
+The annotation was done by the authors of Papers~\ref{paper1}--\ref{paper4}.\footnote{To avoid bias toward the machine or between annotators we incorporated randomisation into the annotation process.} It is an expert annotation (as opposed to a crowdsourcing one). Both annotators have studied literature analysis but at different schools, in different languages, and at different times. It is interesting to see through this annotation whether two experts, not belonging to the same school, can agree on the interpretation of the candidate repetitions.
+Because multiple valid interpretations of a given repetition candidate are often possible, above all in borderline cases, each candidate considered as True or Borderline by the first and main annotator was assigned to the second annotator during the training phase.\footnote{During the test phase this does not apply, because all candidates above rank 200 were annotated by both annotators, including the ones annotated as False.} This allowed us to track subjective differences in interpretation, as well as to identify repetitive figure candidates about which there was an interpretative consensus.
+
+In this chapter we have addressed the questions of the task definition and summarised the approach common to our papers. Some details of the implementation, extraction of candidates and annotation process vary between papers, but these are explained in more detail in each article. The next chapter summarises the main outcomes of our investigations.
+%\subsection{Preselection}
+%In \Pref{paper1} the annotation is done by one annotator for both training and evaluation. For \ref{paper2},\ref{paper3},\ref{paper4} two annotators are involved in the process.
+%
+%
+%The tuning of the system is done by hand, during this tuning each time a new  feature is tested or a new set of weight, the top 200 chiasmi are annotated

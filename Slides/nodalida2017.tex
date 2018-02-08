@@ -1,0 +1,487 @@
+\documentclass[11pt]{article}
+\usepackage{nodalida2017}
+%\usepackage{times}
+\usepackage{mathptmx}
+
+\special{papersize=210mm,297mm} % to avoid having to use "-t a4" with dvips 
+%\setlength\titlebox{6.5cm}  % You can expand the title box if you really have to
+
+
+
+\usepackage{times}
+\usepackage{url}
+\usepackage{latexsym}
+
+
+
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{lingmacros}
+\usepackage[normalem]{ulem}
+\usepackage{textcomp}
+\makeatletter
+\newcommand{\@BIBLABEL}{\@emptybiblabel}
+\newcommand{\@emptybiblabel}[1]{}
+\makeatother
+\usepackage{hyperref}
+\setlength\titlebox{6.5cm}    % Expanding the titlebox
+\usepackage{amsmath} % for \text command
+\newcommand{\mn}[1]{\textbf{#1}}
+\usepackage{multirow}
+\usepackage{array}
+\newcolumntype{H}{>{\setbox0=\hbox\bgroup}c<{\egroup}@{}}
+%%%%%%to comment
+%\eaclfinalcopy % Uncomment this line for the final submission
+%\def\eaclpaperid{***} %  Enter the acl Paper ID here
+%
+%\setlength\titlebox{5cm}
+% You can expand the titlebox if you need extra space
+% to show all the authors. Please do not make the titlebox
+% smaller than 5cm (the original size); we will check this
+% in the camera-ready version and ask you to change it back.
+%%%%%tocomment
+\newcommand\BibTeX{B{\sc ib}\TeX}
+
+\title{Machine Learning for Rhetorical Figure Detection: \\More Chiasmus with Less Annotation}
+
+
+\author{
+Marie Dubremetz\\
+  Uppsala University \\
+  Dept. of Linguistics and Philology \\ 
+  Uppsala, Sweden \\
+  {\small {\tt marie.dubremetz@lingfil.uu.se}}
+	  \And
+	  Joakim Nivre \\
+  Uppsala University \\
+  Dept. of Linguistics and Philology \\
+    Uppsala, Sweden \\ 
+ {\small  {\tt joakim.nivre@lingfil.uu.se}}
+  }
+
+\date{}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+
+Figurative language identification is a hard problem for computers. In this paper we handle a subproblem: chiasmus detection. By chiasmus we understand a rhetorical figure that consists in repeating two elements in reverse order: ``\mn{First} shall be \mn{last}, \mn{last} shall be \mn{first}''.
+Chiasmus detection is a needle-in-the-haystack problem with a couple of true positives for millions of false positives. 
+Due to a lack of annotated data, prior work on detecting chiasmus in running text has only considered hand-tuned systems. 
+In this paper, we explore the use of machine learning on a partially annotated corpus. With only 31 positive instances and
+partial annotation of negative instances, we manage to build a system that improves both precision and recall compared
+to a hand-tuned system using the same features. Comparing the feature weights learned by the machine to those 
+give by the human, we discover common characteristics of chiasmus.
+%Summary is inferior to the 200 max allowed in Nodalida (wc -c)
+\end{abstract}
+
+
+
+
+\section{Introduction}
+%Natural language processing (NLP) automates different tasks: translation,  information retrieval, genre classification. Today, these technologies definitely provide valuable assistance for humans even if they are not perfect. But the automatic tools become inappropriate to use when we need to generate, translate or evaluate texts with stylistic quality, such as great political discourse, novels, or pleadings. Indeed, one is reluctant to trust computer assistance when it comes to judging the rhetoric of a text.
+
+Recent research shows a growing interest in the computational analysis of style and rhetorics. Works like \newcite{Bendersky2012} and \newcite{Booten2016} demonstrate that, with sufficient amounts of data, 
+one can even train a system to recognize quotable sentences. Classical machine learning techniques applied to text can help discover much more than just linguistic structure or semantic content. The techniques applied so far use a lot of data already annotated by internet users, for instance, tumblr sentences with the label \#quotation \cite{Booten2016}. It is a clever reuse of the web as an annotated corpus, but what happens if the stylistic phenomenon we want to discover is not as popular on the web? When there is no available corpus and when the stylistic phenomenon is rare, collecting a substantial amount of annotated data seems unreachable and the computational linguist faces the limits of what is feasible.
+
+This study is a contribution which aims at pushing this limit. We focus on the task of automatically identifying a playful and interesting study case that is rather unknown in computational linguistics: the chiasmus.
+The chiasmus is a figure that consists in repeating a pair of identical words in reverse order. The identity criterion for words can be based on different linguistic properties, such as synonymy or morphological form. Here we focus on chiasmi that have words with identical lemmas, sometimes referred to as antimetabole, and illustrated in Example \ref{exBreed}. From now on, we will refer to this case as simply chiasmus.
+\enumsentence{User services management: \mn{changing} a \mn{breed} or \mn{breeding} a \mn{change}? \label{exBreed}}
+Chiasmus is named after the greek letter $\chi$ because the pattern of repetition is often represented as an `X' or a cross like in  Figure~\ref{graphX}.
+ %======SchÃ©ma=======
+\begin{figure}[h!] 
+\begin{center}
+\includegraphics[scale=0.4]{images/X}
+\caption{Schema of a chiasmus}
+\label{graphX}
+\end{center}
+\end{figure}
+%======SchÃ©ma=======
+
+
+There are several reasons why NLP should pay attention to chiasmi. 
+First it is a widespread linguistic phenomenon across culture and ages.
+Because of the Greek etymology of its name, one might believe that chiasmus belongs only to the rhetoricians of the classical period. It is actually a much more ancient and universal figure. \newcite{Welch1981} observes it in Talmudic,  Ugaritic and even Sumero-Akkadian literature.
+Contrary to what one may think, chiasmus is not an archaic ornament of language and it is used far beyond advertisement or political discourses. It is relevant for good writers of any century. Even scientists use it. % As said by \cite{Vandendorpe1991}:
+%\begin{quotation}
+%Very commonly used in the 70's, [chiasmus] has been harshly criticized for the violence it makes against communicative function of language : ``[...]. The research of meaning is the meaning of research, etc. You can appear deep with any banal idea''(Ellul, 182). But by forcing the naive reader to think, this propositional chiasmus [...] is often
+%appropriate for titles both because of its lexical economy and because of the endlessly deep discussions that it seems to foretell. In \textit{La trouble-fête}, Bernard Andrès criticizes this process for being typical of academic jargon[...]%, which is likely to draw attention and grants.
+%\end{quotation}
+%Even if this quote presents chiasmus as an old fashion practice, it is not true. 
+For instance, currently, a small community of linguists gives a monthly `Chiasmus Award' which each time reveals a new chiasmus produced recently by the scientific community.\footnote{\url{http://specgram.com/psammeticuspress/chiasmus.html}}
+Thus, we come to the same conclusion as \newcite{Nordahl1971}. 
+%\begin{quotation}
+%\noindent Si le chiasme, depuis longtemps, semble \og tramer une mourante vie \fg{}, cela ne vaut que pour ce qui est de l'intérêt qu'y portent les linguistes. En réalité, le chiasme, rhétorique ou fonctionnel, se porte bien.\footnote{If the chiasmus has for a long time seemed to lead a dying life, this is only true with respect to the interest devoted to it by linguists. In reality, the chiasmus, rhetorical or functional, is doing well.}
+%\end{quotation}
+If the chiasmus has for a long time seemed to be dying%lead a dying life
+, this is only true with respect to the interest devoted to it by linguists. In reality, the chiasmus, rhetorical or functional, is doing well \cite{Nordahl1971}.
+Such universality and modernity makes chiasmus detection a fruitful task to perform on many genres, on old text as on new texts.
+
+Second, we can assume that the presence of chiasmus is a sign of writing quality because the author took the time to create it or to quote it. Nowadays the production of texts on the web is a huge industry 
+where authors' compensation is often based on the number of words produced, which does not increase the quality. Thus, detecting such figures of speech is one clue (among others) that may help distinguish masterpieces from poorly written texts.
+
+Finally, an additional reason for studying chiasmus, which is the focus of this paper, is its rarity. To see just how rare it is, consider Winston Churchill's \emph{River War}, a historical narrative counting more than one hundred thousand words. Despite the author's well-known rhetorical skills, we could only find a single chiasmus in the book:
+\enumsentence{ \mn{Ambition} stirs \mn{imagination} nearly as much as \mn{imagination} excites \mn{ambition}.\label{exAmbition}}
+
+%This paper is the first computational linguistics article entirely devoted to the chiasmus. 
+\noindent
+Such rareness is a challenge for our discipline. It is well known that the statistical methods dominant in NLP work best for commonly occurring linguistic phenomena and that accuracy often declines drastically for the long tail of low-frequency events typical of language. Detecting chiasmus is a needle-in-the-haystack problem where all the interesting instances are in the long tail. Simply identifying word pairs repeated in reverse order is trivial, but identifying the tiny fraction of these that have a rhetorical purpose is not. 
+
+Because of its rarity, the chiasmus is not well suited for large-scale annotation efforts. Previous efforts aimed at chiasmus detection have therefore not been able to use (supervised) machine learning for the simple reason that there has been no training data available. These efforts have therefore mainly been based on hand-crafted rules defining categorical distinctions and typically suffering from either low precision or low recall. Dubremetz and Nivre~\shortcite{dubremetz2015,dubremetz2016} proposed a feature-based ranking approach instead, but because they had no annotated data to use for training, they had to resort to tuning feature weights by hand on the training set. However, an important side effect of their work was the release of a small annotated corpus of chiasmi, containing 31 positive instances, a few hundred (annotated) negative instances, and several million unannotated instances assumed to be negative.
+
+This paper presents the first attempt to use machine learning to tune the weights of a model for chiasmus detection, using the corpus released by \newcite{dubremetz2016}. To see whether it is possible to learn from this type of corpus at all, we train a log-linear model with the same features as \newcite{dubremetz2015} and \newcite{dubremetz2016}. The results show that the machine-learned model, despite the small number of positive training instances, improves both precision and recall over the hand-tuned system, which is very encouraging. A comparison between the two types of systems reveals that they agree almost perfectly about which features are positive and negative, respectively, and that the difference in performance is therefore due simply to more well-calibrated weights. From a more general perspective, this shows that using a hand-tuned system to bootstrap a small seed corpus for machine learning may be a viable strategy for tackling needle-in-the-haystack problems like chiasmus detection. 
+
+\section{Related Work}
+
+\label{stateof}
+When documenting chiasmus, the computational linguist ends up in a paradox: linguists have developed reflections on this rhetorical figure but those reflections are not the most helpful. Indeed, they never question the concept of criss-cross patterns as an insufficient condition for producing a rhetorical effect. Typically dictionaries and stylistic books \cite{font,gradus} will explain why chiasmus should belong to the category of scheme and not of trope. \newcite{rabatel} argues why chiasmus has different functions and should therefore be divided into subcategories. On the other side, \newcite{horvei1985changing} demonstrates that chiasmus should not be considered as a simple subcategory of parallelism but rather as a figure on its own. All those reflections are interesting but they all focus on placing chiasmus into the vast family of rhetorical figures. 
+Following this linguistics tradition, the first computational linguists \cite{gawr,hromada} working on chiasmus perform multiple figure detections. They focus on making detectors that can perform both the classification and detection of all kinds of repetitive figures such as epanaphora,\footnote{``\mn{We shall} not flag or fail. \mn{We shall} go on to the end. \mn{We shall fight} in France, \mn{we shall} fight on the seas and oceans[...]''} epiphora, \footnote{``When I was \mn{a child}, I spoke as \mn{a child}, I understood as \mn{a child}, I thought as \mn{a child}. ''} anadiplosis.\footnote{``Mutual recognition requires \mn{trust}, \mn{trust} requires common \mn{standards}, and common \mn{standards} requires solidarity.''} To some extent, their systems are a success in that they correctly distinguish figures from each other. Thus they prove that computers are excellent at extracting each repetition type with the right label (epiphora versus epanaphora versus chiasmus). However, they do not evaluate their systems on real corpora, using precision and recall, and therefore do not really confront the problem of false positives and accidental repetitions.
+
+It is only a couple of years later that computational linguists dare to break with the pure linguistic tradition of handling all rhetorical figures together. With computational linguists like \newcite{Strommer2011,Dubremetz2013} we observe the first of two important methodological shifts in how the problem is approached. For the first time computational linguists decide to focus on only one figure (epanaphora for \newcite{Strommer2011}, chiasmus for \newcite{Dubremetz2013}) and provide some insight into precision/recall. By doing so, they come back to an essential question: When should we consider a repetition as accidental instead of rhetoric? 
+
+This question seems at first simpler than the question of categorising chiasmus against its alternative figures. But answering it leads to more universal and interesting answers for computational linguistics research. Indeed, repetition in language is extremely banal and viewing every repetition in a text as being rhetorical would be absurd. The very first problem in repetitive figure detection in general, in chiasmus detection in particular, is the disproportional number of false positives that the task generates. \newcite{dubremetz2015} point out that in 300 pages of historical tale the previous detector \cite{gawr} extracts up to 66,000 of the criss-cross patterns (for only one true positive chiasmus to be found). At the opposite end, the more strict detector of \newcite{hromada} ends up giving a completely empty output on the same book.
+The pattern that we have to work on, a pair of repetitions in reverse order, is so frequent and the true positive cases are so rare that it makes it impossible to annotate a corpus for a traditional classification task. 
+%Some techniques exist to limit the annotation job \cite{Sagot2011,Adda2014}.  Among these techniques there is self-training, i.e., reusing the data on which a system of detection is confident in order to improve it progressively \cite{Yarowsky1995}. %One could as well use co-training if several systems of detection exist \cite{Blum1998}. 
+%Those techniques are common in ordinary fields of NLP like information retrieval. 
+
+Dubremetz and Nivre~\shortcite{dubremetz2015,dubremetz2016} introduce the second shift in the approach to chiasmus detection. Their observation is  the same as the one made by \newcite{dunn2013} on metaphora:
+\begin{quotation}
+\noindent One problem with the systems described [...] is that they are forced to draw an arbitrary line between two classes to represent a gradient phenomenon. \cite{dunn2013}
+\end{quotation}
+Like \newcite{dunn2013} claims for metaphora, \newcite{dubremetz2015} claim that chiasmus detection is not a binary detection task. It is rather a ranking task similar to information retrieval. As documents are more or less relevant to a query, some chiasmi are more prototypical than others. There are extremely relevant cases like Sentence~\ref{exBusiness}, some completely irrelevant repetitions like Sentence~\ref{exDisease} and there are those in between or borderline cases like Sentence~\ref{exChina}. 
+\enumsentence{How to talk so \mn{business} will \mn{listen} ... And \mn{listen} so \mn{business} will talk? \label{exBusiness}}
+\enumsentence{Let me show you the \mn{Disease} Ontology \mn{update}: take a look at the expanded and \mn{updated} database of human \mn{diseases}, as we can see, it grew since 2014. \label{exDisease}}
+\enumsentence{It is just as contrived to automatically allocate \mn{Taiwan} to \mn{China} as it was to allocate \mn{China}'s territory to \mn{Taiwan} in the past. \label{exChina}}
+Consequently, they decide to convert the detection into a ranking task where prototypical chiasmi would be ranked at the top and less relevant instances would be gradually ranked lower. By doing so, they allow a new type of evaluation. Before evaluation was impossible due to the too big number of false instances to annotate (about 66,000 of them for only one true positive in 150,000 words). But instead of annotating the millions of instances in their training and test set, they decide to annotate only the top two hundred given by the machine. And by trying several systems and keeping trace of the previous annotations they gradually augment the number of true instances they can evaluate on \cite{Willett1997}. Thus they make a needle-in-the-haystack problem a feasible task by reusing the data on which a system of detection is confident to improve evaluation and learning progressively. At the end of their study they show that chiasmi can be ranked using a combination of features like punctuation position, stopwords, similarity of n-gram context, conjunction detection, and syntax. 
+
+
+
+
+%Despite a long tradition in rhetorics and linguistics \cite{Diderot1789,Greene2012,Nordahl1971}, the terms {\em chiasmus} and {\em antimetabole} do not really have clear definitions \cite{rabatel}. %In the earliest times, Quintilian \cite{Greene2012} as well as \newcite{Diderot1789} give us very basic identification features. They talk about the degree of identity that can be accepted to consider two words as identical (strictly identical strings, lemmas or synonyms). On the other hand, \newcite{rabatel} and \newcite{Nordahl1971} try to find subcategories of chiasmi on a deep semantic basis: for instance chiasmi expressing contrast \cite{rabatel}. 
+%%The notion of antimetabole is floating\cite{rabatel}. 
+%Dictionaries of stylistics tend to quote the same prototypical chiasmi to illustrate examples, which is not helpful when trying to capture the linguistic variety of chiasmi. The purpose of the linguists is to define chiasmus compared to other figures (for instance chiasmus as opposed to parallelism). To the best of our knowledge there is no purely linguistic study that tries to distinguish between chiasmus and random repetition of words in a criss-cross manner. In non-computer-assisted linguistics, as opposed to computational linguistics, rhetoric is taken for granted. Linguistics has to answer only one question: Which figure is instantiated by this piece of rhetoric? Computational linguistics now has to answer not only this question but also the question of whether a piece of text is a piece of rhetoric in the first place.
+%
+%\newcite{gawr} was the first to tackle the automated detection of repetitive figures and of chiasmus in particular. Following the general definition of the figure, he proposed to extract every repetition of words that appear in a criss-cross pattern. Thanks to him, we know that this pattern is extremely frequent while true positive chiasmi are rare. Returning to the example of \textit{River War} by Winston Churchill, discussed in the introduction, it is a book consisting of $150,000$ words, with $66,000$ examples of criss-cross patterns but only one true positive \cite{dubremetz2015}. \newcite{hromada} then proposed to add a feature constraint to the detection: he drastically reduced the number of false positives by requiring three pairs of words repeated in reverse order without any variation in the intervening material. This technique eliminates nearly all false positives, but in the example of Churchill's book, this also removes the one true positive and the user ends up with a totally empty output. Finally, Dubremetz and Nivre~\shortcite{dubremetz2015,dubremetz2016} built on
+%the intuition of \newcite{hromada} and added features to the detection of chiasmus, but in a different way. They observed that chiasmus, like metaphor \cite{dunn2013}, is a graded phenomenon with prototypical examples and controversial/borderline cases such as Example~\ref{exChina}.
+%\enumsentence{It is just as contrived to automatically allocate \mn{Taiwan} to \mn{China} as it was to allocate \mn{China}'s territory to \mn{Taiwan} in the past. \label{exChina}}
+%
+%\noindent
+%Thus,  chiasmus detection should not be a binary classification task. Instead, \newcite{dubremetz2015} argue that a chiasmus detector should extract criss-cross patterns and rank them from prototypical chiasmi to less and less likely instances. 
+%
+%A serious methodological problem for the evaluation of chiasmus detection is the massive concentration of false positives (about $66,000$ of them for only one true positive in $150,000$ words). Such a needle-in-the-haystack problem makes the constitution of an exhaustively annotated corpus 
+%extremely time-consuming and repetitive. 
+%%Some techniques exist to limit the annotation job \cite{Sagot2011,Adda2014}.  Among these techniques there is self-training, i.e., reusing the data on which a system of detection is confident in order to improve it progressively \cite{Yarowsky1995}. One could as well use co-training if several systems of detection exist \cite{Blum1998}. 
+%%Those techniques are common in ordinary fields of NLP like information retrieval. 
+%The same kind of problem is however common in information retrieval, where the absolute recall of a system is usually not computable, and where recall is therefore measured only relative to the pool of documents retrieved by a set of systems \cite{Willett1997}. That is why the evaluation of Dubremetz and Nivre \shortcite{dubremetz2015,dubremetz2016} is based on the same principle: in a series of experiments their different ``chiasmus retrieval engines'' return different hits. They annotate manually the top two hundred of those hits.  By doing that, they obtain a pool of relevant (and irrelevant) inversions, on which they can measure average precision to show that chiasmi can be ranked using a combination of features like stopwords, conjunction detection, punctuation position, similarity of n-gram context and syntax. 
+%They relate it to information retrieval task in the nee. They are the first to offer an evaluation of their system thanks based on this assumption: they give up on the impossible task of making an exhaustive annotation of the candidates given by the systems. Instead, they ask the machine to rank chiasmi and evaluate only the top 200 candidates given on the training and test sets.  
+%Their method gives good recall and precision and even outperforms the hand-tuned system when it comes to ranking.
+
+Because of lack of data, Dubremetz and Nivre~\shortcite{dubremetz2015,dubremetz2016} tuned their features manually. They give average precision\footnote{Average precision is a common evaluation used in information retrieval. It considers the order in which each candidates is returned by making the average of the precision at each positive instance retrieved by the machine. Thus this measure gives more information on the performance of a ranking system than a single recall/precision value \cite{croft2010}.} results which is a good start. But they could not train a proper classifier. Thus, we have no idea if a computer can learn the patterns associated with rhetorical chiasmi and if a binary system would properly distinguish some true positives and not just throw all true instances in the overwhelming majority of false positives. 
+This is the issue tackled in this paper. Using a partially annotated corpus we train a model automatically and compare the performance to the hand-tuned system. 
+We evaluate the system using both average precision and F1-scores.
+
+\section{Corpus}
+We use the corpus from \newcite{dubremetz2015} as our training corpus (used to learn weights for a fixed set of features) and a new corpus as our final test corpus. The training corpus consists of four million words from the Europarl corpus, containing about two million instances of criss-cross patterns. Through the previous efforts of Dubremetz and Nivre~\shortcite{dubremetz2015,dubremetz2016}, 3096 of these have been annotated by one annotator as True, False, Borderline or Duplicate.\footnote{For example, if the machine extracts both ``\mn{All} for \mn{one}, \mn{one} for \mn{all}'' and ``\mn{All} \mn{for} one, one \mn{for} \mn{all}'', the first is labeled True and the second Duplicate, even if both extracts cover a true chiasmus.} The True, Borderline and Duplicate instances were then re-annotated by a second annotator. Only instances labeled True by both annotators will be considered as true positives in our experiments (at both training and test time). This makes sure that both training and evaluation is based on the most prototypical true examples. The test set is an unseen further extract of the Europarl corpus of 2 million words. For the test phase, two annotators were asked to annotate the top 200 instances of each system. In total, this produced 457 doubly annotated instances in our test set containing one million instances in total.
+
+\section{Features}
+\newcite{dubremetz2015} proposed a standard linear model to rank candidate instances:
+\begin{displaymath}
+f(r)=\sum\limits_{i=1}^n x_i \cdot w_i
+\end{displaymath}
+where $r$ is a string containing a pair of inverted words, $x_i$ is a set of feature values, and $w_i$ is the weight associated with each features. Given two inversions $r_1$ and $r_2$, $f(r_1) > f(r_2)$ means that the inversion $r_1$ is more likely to be a chiasmus than $r_2$ according to the model.
+
+The features used are listed in Table~\ref{feats}, using the notation defined in Figure~\ref{formalism}. The feature groups \textbf{Basic}, \textbf{Size}, \textbf{Similarity} and \textbf{Lexical clues} come from \newcite{dubremetz2015}, while the group \textbf{Syntactic features} was added in \newcite{dubremetz2016}. We use the same features in our machine learning experiments but only 
+train two systems, one corresponding to \newcite{dubremetz2015} (called Base) %(\textbf{Basic} + \textbf{Size} + \textbf{Similarity} + \textbf{Lexical clues}) 
+and one corresponding to \newcite{dubremetz2016} (called All features). %(\textbf{Basic} + \textbf{Size} + \textbf{Similarity} + \textbf{Lexical clues} + \textbf{Syntactic features})
+This allows us to make a head-to-head comparison between the systems, where the only difference is whether feature weights have been tuned manually or using machine learning.
+
+\label{append}
+\begin{figure*}[t]
+\footnotesize
+\begin{center}
+{$\underbrace{\hbox{In prehistoric times}}_{C_{\text{Left}}}$ 
+$\underbrace{\hbox{\hbox{\mn{women}}}}_{W_a}$ 
+$\underbrace{\hbox{resembled}}_{C_{ab}}$ 
+$\underbrace{\hbox{\mn{men}}}_{W_b}$ 
+$\underbrace{\hbox{, and}}_{C_{bb}}$
+$\underbrace{\hbox{\mn{men}}}_{W'_b}$ 
+$\underbrace{\hbox{resembled}}_{C_{ba}}$
+$\underbrace{\hbox{\mn{women}}}_{W'_a}$.}
+\caption{\label{formalism}Schematic representation of chiasmus, C stands for context, W for word.}%[inspired from \shortcitet[p.3]{harris2009}] }
+\end{center}
+\end{figure*}
+
+
+%=============TABLEAU=========
+\begin{table*}[t]
+\footnotesize
+\begin{center}
+\begin{tabular}{|l|p{8.5cm}HH|}
+\hline 
+\textbf{Feature} & \textbf{Description} & \textbf{Weight hum.} & \textbf{Weight mach.}\tabularnewline
+\hline 
+\hline 
+\multicolumn{4}{|c|}{\textbf{Basic}}\tabularnewline
+\hline 
+\#punct &Number of hard punctuation marks and parentheses in C$_{ab}$ and C$_{ba}$& $-10$ & $-1,84$ \tabularnewline%and quotes
+\hline 
+\#softPunct & Number of commas in C$_{ab}$ and C$_{ba}$ & $-10$ & $-1,86$ \tabularnewline
+\hline 
+\#centralPunct & Number of hard punctuation marks and parentheses in C$_{bb}$ & $-5$ & $-0,79$ \tabularnewline%and quotes
+\hline 
+isInStopListA & W$_a$ is a stopword & $-10$ & $-2,82$ \tabularnewline
+\hline 
+isInStopListB & W$_b$ is a stopword & $-10$ & $-2,92$ \tabularnewline
+\hline 
+\#mainRep & Number of additional repetitions of W$_a$ or W$_b$ %(e.g., in this false positive:``\mn{Jones} said: \mn{Miss} Smith! Let me introduce you \textit{\mn{Miss}} Clark and  my wife \mn{Miss} \mn{Jones}.'') %(e.g.,The brigades
+%marched with three battalions in the front line, each of the three
+%in the \emph{front} line having four companies in front and two in
+%support.) 
+& $-5$ & $-1,19$ \tabularnewline
+\hline 
+\multicolumn{4}{|c|}{\textbf{Size}}\tabularnewline
+\hline 
+\#diffSize & Difference in number of tokens between C$_{ab}$ and
+C$_{ba}$%(e.g., Plato is philosophy and philosophy Plato %, R.W. Emerson,
+%has a \#diffSize of 1 ) 
+& $-1$ & $-0,66$ \tabularnewline
+\hline 
+\#toksInBC & Position of W'$_a$ minus position of W$_b$ & $-1$ & $-0,92$ \tabularnewline
+\hline 
+\multicolumn{4}{|c|}{\textbf{Similarity}}\tabularnewline
+\hline 
+exactMatch & True if C$_{ab}$ and C$_{ba}$ are identical & $5$ & $1,18$ \tabularnewline
+\hline 
+\#sameTok & Number of identical lemmatized tokens in C$_{ab}$ and in C$_{ba}$%(e.g., ``A good \emph{for a} bad, a bad \emph{for
+%a} good'', has a \#sameTok of 2) 
+& 1 & $0,70$\tabularnewline
+\hline 
+simScore & \#sameTok but normalised & $10$ & $1,19$ \tabularnewline
+\hline 
+\#sameBigram & Number of bigrams that are identical in C$_{ab}$ and C$_{ba}$
+%(e.g., ``begining \emph{of the} end, end \emph{of the} begining''
+%has a \#samebigram of 1 ) 
+& $2$ & $0,70$ \tabularnewline
+\hline 
+\#sameTrigram & Number of trigrams that are identical in C$_{ab}$ and C$_{ba}$ & $4$ & $-0,87$ \tabularnewline
+\hline 
+\#sameCont & Number of tokens that are identical in C$_{\text{Left}}$ and C$_{bb}$ & $1$ & $0,42$ \tabularnewline
+\hline 
+\multicolumn{4}{|c|}{\textbf{Lexical clues}}\tabularnewline
+\hline 
+hasConj & True if C$_{bb}$ contains one of the conjunctions %\\&
+ `and', `as', `because', `for', `yet', `nor', `so', `or', `but'
+%(e.g, Never live for eating \emph{but} eatfor living)
+ & $2$ & $1,09$ \tabularnewline
+\hline 
+hasNeg & True if the chiasmus candidate contains one of the negative words `no', `not', `never', `nothing'
+%(e.g., \emph{Never} let a kiss fool you or a fool kiss you, has one
+%negation)  
+& $2$ & $0,21$ \tabularnewline
+\hline 
+hasTo & True if the expression ``from \ldots to'' appears in the chiasmus candidate 
+or `to' or `into' are repeated in C$_{ab}$ and C$_{ba}$ %(``fight \emph{to} live, live\emph{
+%to} fight'') 
+& $2$ & $1,26$ \tabularnewline
+\hline 
+
+\multicolumn{4}{|c|}{\textbf{Syntactic Features}}\tabularnewline
+\hline
+ 
+sameTag & True if $W_a$ $W_b$ $W_b'$ $W_a'$ words have same PoS-Tag.& $10$ & $0,67$ \tabularnewline
+\hline 
+
+\#sameDep$W_a$ $W_b'$ & Number of incoming dependency types shared by $W_a$ and $W_b'$. & $+5$ & $1,33$ \tabularnewline%and quotes
+\hline 
+ 
+\#sameDep$W_b$ $W_a'$ &Same but for $W_b$ and $W_a'$& $+5$ & $1,31$ \tabularnewline%and quotes
+
+\hline 
+
+\#sameDep$W_a$ $W_a'$ & Same but for $W_a$ and $W_a'$& $-5$ & $-1,17$ \tabularnewline
+\hline 
+\#sameDep$W_b$ $W_b'$ & Same but for $W_b$ and $W_b'$& $-5$ & $-0,66$ \tabularnewline
+\hline 
+\end{tabular}
+
+\caption{The five groups of features used to rank chiasmus candidates}
+\label{feats}
+\end{center}
+\end{table*}
+
+\section{Learning}
+
+Training is performed on the same 4 million words corpus that was used by Dubremetz and Nivre~\shortcite{dubremetz2015,dubremetz2016} for feature selection and manual tuning of weights. It contains more than two million instances of chiasmus candidates with 296 of them doubly annotated.  We train a binary logistic regression classifier and use two fold cross-validation to set the parameters. To fit the system, we use the 31 instances labeled as True by both annotators as our positive examples. All other instances are labeled as False and thus considered as negative examples (even if most of them are actually unknown, because they were never encountered during the hand-tuning process). 
+
+We tried training on only annotated instances but the results were not satisfying. Normalizing features by the maximum values in order to get only 0 to 1 features deteriorated the result as well. We tried over-sampling by giving a weight of 1000 to all true positive instances; this neither improved nor damaged the results. Finally, we tried support vector machines (SVM), with rbf and linear kernels, and obtained similar average precision scores as for logistic regression during training. When it comes to F-score, the SVM, unlike logistic regression, requires an over-sampling of true positives in order to perform as well as logistic regression. Otherwise, it converges to the majority baseline and classifies everything as false. 
+
+Based on these preliminary experiments, we decided to limit the final evaluation on the unseen test set to the logistic regression model, as its probability prediction allows us to rank chiasmi easily. In addition, its linear implementation allows us to observe the learned feature weights and compare them to those of the earlier hand-tuned systems. For the linear logistic regression implementation we used scikit-learn \cite{Pedregosa2011}.
+
+
+\label{perf}
+%=============TABLEAU=========
+\begin{table*}[t]
+%\small
+\begin{center}
+\begin{tabular}{|ll|r|r|r|r|}
+\hline 
+\multicolumn{2}{|l|}{\textbf{Model}}  & \textbf{Avg Precision} &\bf Precision & \bf Recall & \bf F1-score \\
+\hline 
+\hline 
+
+Machine & Base & 57.1& 80.0 & 30.8 & 44.4 \tabularnewline
+\hline 
+Machine & All features & \textbf{70.8}& \textbf{90} & \textbf{69.2} & \textbf{78.3} \tabularnewline
+\hline 
+\hline
+%\multicolumn{5}{|l|}{Dubremetz and Nivre \shortcite{dubremetz2015,dubremetz2016}} \tabularnewline
+%\hline 
+Human & Base &42.5  & -- & -- & -- \\
+
+\hline 
+Human &All features &67.7& -- & -- & -- \tabularnewline%and quotes
+\hline 
+
+\end{tabular}
+
+\caption{Results for logistic regression model (Machine) with comparison to the hand-tuned models of Dubremetz and Nivre (2015; 2016) (Human). Inter annotator agreement $\kappa$ = 0.69}
+\label{results}
+\end{center}
+\end{table*}
+
+%%=============TABLEAU=========
+%\begin{table}[t]
+%\begin{center}
+%
+%\begin{tabular}{|c|c|c|c|}
+%\hline 
+% & Precision & Recall & F1-score\tabularnewline
+%\hline 
+%\hline 
+%Base & 0.80 & 0.30 & 0.44\tabularnewline
+%\hline 
+%All Features & \textbf{0.88} & 0.62 & \textbf{0.72}\tabularnewline
+%\hline 
+%\end{tabular}
+%
+%
+%\caption{Results of the binary classifier ($\kappa$ = 0.69)}
+%\label{fscore}
+%\end{center}
+%\end{table}
+
+\section{Evaluation}
+
+Table~\ref{results} shows that the systems based on machine learning give better performance than the hand-tuned systems. With only base features, the average precision improves by as much as 15\%. With syntactic features added, the difference is smaller but nevertheless 3\%. The performance is measured on the 13 instances in the test set judged as True by both annotators. For the machine learning system, we also report precision, recall and F1-score. Again, we see that syntactic features help a lot, especially by improving recall from about 30\% to over 69\%. The F1-score of about 78\% is surprisingly good given how imbalanced the classes are (13 positive instances to one million negative instances). The most impressive result is the precision score of 90\% obtained by the machine when using all features. This means that 9 out of 10 instances classified as True were actually real positive instances. 
+
+%Below figures the only false positive given by the machine, it was ranked at position 3:
+
+%\enumsentence{ They constitute a serious error as the \mn{directive} does not apply to the \mn{Internet} as the \mn{Internet} did not exist when the \mn{directive} was drafted.\label{exDirective}}
+
+%Note this interesting fact: Chiasmus~\ref{exDirective} was annotated as borderline case by one of our annotators. Knowing that a human can be unsure about this particular example underlines a certain coherence in the model given by the machine. Except for this false positive the machine gives no false positive up to position 11. This means that 10 out of the 13 were ranked extremely high. The only advantage that displays the human system is that it keeps within the to 100 all the true positive when the machine looses two of them at position 171 and 219.
+
+\section{Error Analysis}
+To cast further lights on the results, we performed an error analysis on the cross-validation experiments (run on the training set). In the all-features experiment, we encountered 4 false positives. Of these, 3 were actually annotated as Borderline by both annotators, and 1 was annotated as Borderline by one annotator and False by the other, which means that none of the false positives were considered False by both annotators. To illustrate some of the difficulties involved, we list 5 of the 31 positive instances in the training set (\ref{true1}--\ref{true5}), followed by the 3 borderline cases (\ref{border1}--\ref{border3}) and the 1 case of annotator disagreement (\ref{dis}).
+
+\vspace{0.3cm}
+\noindent
+\textbf{Positive}
+\enumsentence{We do not believe that the \mn{end} justifies the \mn{means} but that the \mn{means} prefigure the \mn{end}.\label{true1}}
+\enumsentence{Do not \mn{pick} the \mn{winners} and let the \mn{winners} \mn{pick}.\label{true2}}
+\enumsentence{Europe has no problem converting \mn{euros} into \mn{research}, but has far greater difficulty converting \mn{research} into \mn{euros}.\label{true3}}
+\enumsentence{That it is not the \mn{beginning} of the \mn{end} but the \mn{end }of the \mn{beginning} for Parliament's rights.\label{true4}}
+\enumsentence{It is much better to bring \textbf{work} to \textbf{people} than to take \textbf{people} to \textbf{work}.\label{true5}}
+\noindent
+\textbf{Borderline}
+\enumsentence{ In parallel with the work on these practical aspects, a discussion is ongoing within the European Union on determining the mechanisms for participation both by EU Member \mn{States} which are not members of \mn{NATO} and by \mn{NATO} countries which are not EU Member \mn{States}.\label{border1}}
+\enumsentence{ In that way, they of course become the \mn{EU}' s representatives in the Member \mn{States} instead of the Member \mn{States}' representatives in the \mn{EU}.\label{border2}}
+\enumsentence{ If there is discrimination between a black person and a white person, or vice versa, for example if someone discriminates against a \mn{white} Portuguese in favour of a \mn{black} Portuguese, or against a \mn{black} Portuguese in favour of a \mn{white} Portuguese, this is clearly unlawful racism and should result in prosecution.\label{border3}}
+\textbf{Disagreement}
+\enumsentence{European consciousness is that which must contribute to the development of mutual respect [...] and which must ensure that tolerance is not confused with laxity and an absence of \mn{rules} and \mn{laws} and that \mn{laws} and \mn{rules} are not made with the intention of protecting some and not others.\label{dis}}
+\noindent
+How can the classifier achieve such good results on both recall and precision with only 31 positive instances to learn from? We believe an important part of the explanation lies in the way the training set was constructed through repeated testing of hand-crafted features and weights. This process resulted in the annotation of more than 3 000 obvious false positive cases that were recurrently coming up in the hand-tuning experiments. The human started tuning and annotating with the most simple features like stop words to start filtering out false positives. This is in fact a necessary requirement. Without stop word filtering, the chance of finding a true positive in the top 200 instances is extremely small. Thus, if a false negative is hidden somewhere in the training set, it is likely to be one involving stop words. To the best of our knowledge, there is only one existing chiasmus ever reported in the history of rhetorics that relies exclusively on stopwords: %(Sentence~\ref{exAll}).
+\enumsentence{ \mn{All} for \mn{one}, \mn{one} for \mn{all} \label{exAll}}
+\noindent
+Given this, we cannot guarantee that there are no false negatives in the training set, but we can definitely say that they are unlikely to be prototypical chiasmi. 
+Thanks to this quality of the annotation, the machine had the maximum of information we could possibly give about false positives which is by far the most important class.
+In addition, the performance observed with only 31 positive training instances might be revealing something about chiasmus: the linguistic variation is limited. 
+Thus, within 31 examples the patterns are repeated often enough so that a machine can learn to detect them.
+
+%Finally, we measured average precision (again on the training set using cross-validation) when counting both True and Borderline cases as True. In this case, the human outperforms the machine (74\% vs. 54\%).  This might be explained by the process of tuning: the human while tuning is aware of borderline cases and might rely on information given by those cases as well. The machine on the other hand was trained with Borderline cases classified as False and therefore learns to discriminate against them to a larger extent. 
+
+\begin{center}
+\begin{figure}[t]
+\includegraphics[scale=0.52]{images/HumMach}
+\caption{Feature weights from machine learning and hand-tuning, normalized to the interval [0, 1]}
+\label{featscale}
+\end{figure}
+\end{center}
+
+\section{Weights}
+
+Figure~\ref{featscale} shows the weights assigned to different features in the hand-tuning experiments of Dubremetz and Nivre \shortcite{dubremetz2015,dubremetz2016} and in the machine learning experiments reported in this paper. All weights have been normalized to the interval [0, 1] through division by the largest weight in each set. 
+
+The comparison gives rise to several interesting observations. The most striking one is that the machine and the human agree on which features are negative versus positive. The only exception is  the \textbf{\#sameTrigram} feature (cf.~Table~\ref{feats}, group Similarity). This feature counts the number of trigrams that are identical in the two different parts of the chiasmus. For instance, in the Kennedy quote (example~\ref{exCountry}), there is one identical trigram: \emph{can do for}. However, we can easily explain this disagreement: this feature is one out of four that express the similarity between chiasmus propositions and may thus be redundant.
+
+\enumsentence{ Ask not what your \mn{country} can do for \textbf{you}; ask what \mn{you} can do for your \mn{country}.\label{exCountry}}
+
+The machine assigned the largest weights to the stop word features, namely \textbf{isInStopListA} and \textbf{isInStopListB} (cf.~Table~\ref{feats}), which agrees with human logic. Note, however, that the human gave the maximum weight to several other features as well, like features related to punctuation (negative) and part-of-speech tag identity (positive). Finally, we observe that the human gives the same absolute value to all the syntactic dependency features, while the machine tuned them slightly differently. It put a smaller weight on the negative feature \textbf{\#sameDep$W_b$$W_b'$} but not on \textbf{\#sameDep$W_a$$W_a'$}. These two negative features are of the same nature: they target the elimination of false positives based on enumerations. In prototypical chiasmi, like the one from Hippocrates (example \ref{exHippocrates}), the two occurrences of \emph{a} and {b} in the \emph{abba} pattern have different syntactic roles because they switch positions in a repeated syntactic structure.
+\enumsentence{Hippocrates said that \textbf{food} should be our \textbf{medicine} and \textbf{medicine} our \textbf{food}.\label{exHippocrates}}
+Therefore, both \textbf{\#sameDep$W_a$$W_a'$} and \textbf{\#sameDep$W_b$$W_b'$} penalize instances where the pairwise occurrences have the same role. To the human it was not obvious that they should be differentiated, but apparently this constraint is statistically stronger for the outermost $a$ words. 
+
+\section{Limitations and Future Work}
+
+An obvious limitation of our study is the small set of true positives on which we base the evaluation. As explained earlier, it is normal to have very few true examples even out of 2 million words of text. The Europarl corpus \cite{koehn2005}, being large, consistent, but sometimes noisy, seemed to us convenient by its size and the robustness challenge it represented. Above all, it has a style that is not too specific, like poetry would be. Thus, we can hope that models tuned on this corpus would generalise to other genres (novels, for instance). A good follow-up experiment would therefore be to explore other genres and in this way test the generality of the system. This will be done in future research. 
+
+%We saw that the system performs a decent F-score but we based our evaluation and training on partially annotated data. Thus the numbers are dependant on this partial annotation. And one could object that our system might miss some special cases of chiasmi never saw during training or testing and left in the false positives. It is unlikely but possible (cf. Section~\ref{perf}). That is why we should consider the type of application we target: the detection of stylistic patterns. This is used in domains like argumentation mining, discourse or literature analysis. In these domains, the absolute recall is sometimes good to know but not vital: making sure to not waste budget and specialized annotators on the task is much more an issue. In domains like cancer or suicide detection it would be different: they are health related application where we cannot sacrifice any degree of certainty. They are as well disciplines where much more budget is allowed than for literature for instance. Thus our study represents a wonderful hope for any domain in need for evaluation of rhetorics where we cannot allow ourselves to annotate millions of examples.
+
+Another line of future research is to extend the approach to other (repetitive) rhetorical figures, such as \emph{anadiplosis} (the repetition of the last word of one clause or sentence at the beginning of the next) or \emph{anaphora} (the repetition of the same word or group of words at the beginning of successive clauses, sentences, or lines). It would be interesting to see, first, whether the same types of features would be useful and, secondly, how easy or difficult it is to discriminate between  different figures.
+
+%Finally, we see that borderline cases exist, the Cohen's kappa (Table~\ref{fscore}) measurement shows that it is possible to agree on what is a chiasmus, but we do not deny that rhetoric can be subjective, with humans more or less sensitive to it. So another challenge could consist in training different systems further calibrated to borderline cases, or more adapted to the point of view of one or another annotator.
+
+\section{Conclusion}
+In this paper, we target a task outside the NLP comfort zone: chiasmus detection. The challenge consists in training a model for an extremely rare stylistic phenomenon, with a corpus that is only very partially annotated. Previously, only hand tuned systems existed and we had no idea how many examples were needed to train an effective model. We trained a log-linear classifier on a four million word corpus of political debates. This corpus contained only 31 true examples, a few hundred instances explicitly annotated as false, and millions of unknown instances labeled as false by default. This method gives good recall and precision and even gives slightly higher accuracy than the hand-tuned system when it comes to ranking. 
+
+We observed strong similarities in the assignment of feature weights by human and machine, with almost total agreement on which features should be positive or not, although the machine could fine-tune the weights, for example, to account for differential syntactic patterns. An error analysis revealed that false positives were more likely than not to be cases that were considered borderline (or unclear) by human annotators. Taken together, these results indicate that we have created a system coherent with the human perception of rhetoric. 
+
+Our research is transforming a difficult needle-in-the-haystack problem into a feasible task and the only concession to do is to accept partial recall. As in old traditional methods \cite{Blum1998,Yarowsky1995}, we wielded the full potential of labeled and unlabeled data. We adapted it to the domain of style and creative language. Detecting chiasmus is a creative manipulation of texts that has potential applications in figurative language processing \cite{Veale2011}, where information retrieval becomes creative text retrieval.
+
+%\appendix
+%\label{append}
+%\section{Positive Chiasmus Instances in our Training Set}
+%Sample of 5 chiasmi out of a total of 30 True chiasmi in our training set
+%\begin{enumerate}
+%
+%
+%\item We do not believe that the \mn{end} justifies the \mn{means} but that the \mn{means} prefigure the \mn{end}.
+%\item Do not \mn{pick} the \mn{winners} and let the \mn{winners} \mn{pick}.
+%\item Europe has no problem converting \mn{euros} into \mn{research}, but has far greater difficulty converting \mn{research} into \mn{euros}.
+%\item That it is not the \mn{beginning} of the \mn{end} but the \mn{end }of the \mn{beginning} for Parliament's rights.
+%\item It is much better to bring \textbf{work} to \textbf{people} than to take \textbf{people} to \textbf{work}.
+%\end{enumerate}
+
+%
+%\begin{enumerate}
+%\item ``\mn{East} is \mn{West}, and \mn{West} is \mn{East}, and never the twain shall part."
+%\item I can therefore find no reason to differentiate between \mn{Poland} and \mn{Hungary} or between \mn{Hungary} and \mn{Poland}.
+%\item Europe is good at converting \mn{euros} into \mn{research}, but often fails in converting \mn{research} into \mn{euros}, and that must change in future.
+%\item I think that Parliament is being held hostage to a few Stalinists, who always take a \mn{strong} line with those who are \mn{weak} and are \mn{weak} in the face of those who are \mn{strong}.
+%\item we have \mn{armies} that lack clear \mn{enemies} and \mn{enemies} that lack \mn{armies}.
+%\item It is yet another example of the EU taking money from \mn{poor} people in \mn{rich} countries and giving it to \mn{rich} people in \mn{poor} countries.
+%\item Many of those areas have over the years turned from \mn{land} into \mn{sea} or from \mn{sea} into \mn{land}, with or without specific human intervention.
+%\item \mn{Reason} without \mn{passion} is sterile, \mn{passion} without \mn{reason} is heat.
+%\item We must avoid a situation where [...] \mn{citizens} are afraid of their \mn{institutions} - and perhaps more importantly \mn{institutions} are afraid of their \mn{citizens} - makes for a very weak democracy.
+%\item ``if the \mn{mountain} won't come to \mn{Mohammed}, then let's take \mn{Mohammed} to the \mn{mountain}".
+%\item What we now have to do is to turn Europe into an international operator [in] a world in which nations are too \mn{big} to resolve their \mn{small} problems and too \mn{small} to resolve the \mn{big} problems we are faced with on a global scale.
+%\item As Hegel, then an old man, wrongly said - `the \mn{real} is \mn{rational} and the \mn{rational} \mn{real}' [...].
+%\item Do not imagine, however, that \mn{legitimacy} in itself creates \mn{democracy}. Rather, it is \mn{democracy} which creates \mn{legitimacy}.
+%\nopagebreak
+
+
+\nocite{Bird2009}
+\nocite{manning2014}
+\bibliographystyle{acl}
+\bibliography{biblio/EACL2017}
+
+\end{document}

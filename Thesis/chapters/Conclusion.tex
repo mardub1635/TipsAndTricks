@@ -1,0 +1,45 @@
+\chapter{\label{conclu}Conclusion}%
+\epigraph{``God is dead.''
+--Nietzsche\\
+``Nietzsche is dead.''
+--God}{--- Anonymous Graffiti}
+\noindent
+In this chapter, we summarise what we take to be the main contributions of the thesis and point to promising directions for future research.
+
+\section{Main Contributions}
+ We sought to detect three figures of repetition called chiasmus, epanaphora, and epiphora. Our main question was to what extent this detection is possible for a computer, and our %Before this thesis, computational linguistics had addressed mainly the extraction of any pattern of repetition without learning to sort the noise.
+research questions revolved around the following notions: the definition of the task, the challenges raised by each figure, the amount of data needed to build a reliable model, the weighting techniques, the evaluation methods, and finally the categories of features to be used.
+%\item  What challenges are posed by different types of figures with respect to features and machine learning?
+%
+%\item Can we automatically learn how to weight different features, and how much annotated data do we need for that?
+%\item How do we evaluate the performance on this task?
+%\item Which types of linguistic features are useful?
+
+
+Our first contribution is to redefine the task itself. Based on empirical observations, we propose to rank the figures, instead of just classifying them as either rhetorical or not. Therefore we do not propose a system that would output just the figures \textit{we} think are relevant. More generally, we propose a system that extracts all the repetitions and ranks them with the most unanimously relevant instances presented at the top of the list. By not sharply and arbitrarily cutting off the borderline cases, we manage to design a detector likely to be relevant for any user, regardless of individual preferences.
+
+Our second contribution is to reveal the particular needle-in-the-haystack character of the figures and thus to identify the real problem: many candidates but very few real instances. This made the task of annotating a corpus particularly hard, and there was no previously annotated data for us to use. Our third contribution is to propose a method for annotating the training data but in a selective way; most obviously false instances are removed from annotation by manually tuned systems for chiasmus and by state of the art filters for epanaphora and epiphora. This method reduces by three orders of magnitude the annotation work for chiasmus, and one order of magnitude that for epanaphora and epiphora. 
+
+Our fourth contribution is to define an evaluation scheme and apply it to our system. Since ranked evaluation data is difficult to obtain, and since we do not have a completely annotated
+test corpus, we have to evaluate by measuring precision on clear cases. To nevertheless make the 
+evaluation sensitive to the ranking, we propose to use average precision, which favours systems that
+rank clear cases at the top.
+This evaluation reveals that, even with a very incompletely annotated corpus, a system for repetitive figure detection can be trained to achieve reasonable accuracy. 
+
+Our fifth contribution is a systematic study of different linguistic features and their impact on detection. The study shows, first of all, that we can detect all three figures using relatively shallow features that do not require semantic analysis, although syntactic analysis is 
+beneficial for chiasmus. The study also shows that different features are useful for different figures. In particular, despite the close similarity between epanaphora and epiphora, their detection
+requires partially different features.
+%This is performed with various features (like length, ngrams, PoS-Tags, syntactic roles) and none of those features requires deep semantic analysis.  
+
+Finally, we answer our main research question, as we demonstrate that our system works on four different types of text: political discourse, fiction, titles of articles and novels, and quotations. Besides showing that the system is robust to genre shifts, this exploration also reveals differences in the frequency of different figures for different genres.
+
+\section{Future Directions}
+ While our system has been proven to be useful for a user, the statistical significance of each feature is not yet proven (especially for chiasmus). For that, we would need larger datasets for evaluation, and thus more annotation by more annotators. 
+ 
+% The tendancies we revealed about the titles of fiction and the titles of scientific articles were done on a large number of titles but ended up with a relativel
+ 
+ It would be interesting to see if this system is applicable to other languages than English, and compare the usefulness of the features across languages. Another improvement would be to broaden the types of chiasmus, epanaphora and epiphora we detect. For instance, can we detect chiasmus with only semantic links, or epanaphora and epiphora that do not consist of adjacent sentences? Finally, an important goal could be to detect more than three types of repetitive patterns.
+ 
+ 
+ As for now, we have already released the chiasmus detector\footnote{\url{https://github.com/mardub1635/chiasmusDetector}} and we have been contacted by other universities wishing to apply it to digital humanities projects\citep{Ullyot2017}. 
+ Our epanaphora and epiphora detectors will be released as well, and it will be interesting to see the user feedback on these. An online demo\footnote{\url{http://stp.lingfil.uu.se/~marie/cgi/demo.html}} is available for chiasmus detection. It is an early version dating from 2015, but nevertheless it is the first time any repetitive figure detector has been made available to the general public. If we continue developing tools accessible for an audience from the humanities, comparative corpus studies like the one in Paper IV could be performed on a larger scale by different researchers. Ultimately, this would increase our insight into not only the use of these figures, but also genres, author styles and literature in general.%, so far too unfrequent to be observed manually on a large scale.% This type of demo online would be worth developing further in order to attract more users from humanities. 

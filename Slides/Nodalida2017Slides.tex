@@ -1,0 +1,610 @@
+\documentclass[xcolor=svgnames]{beamer}
+%\documentclass[handout]{beamer}%Pour imprimer sans les pauses!
+\usepackage[square]{natbib}   
+%\usepackage[greek,francais]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[squaren,Gray]{SIunits}
+\usepackage{eurosym}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{tikz}
+%\usepackage{latex-beamer}
+\setbeamercolor{item}{fg=brown!45!red} %ici tu peux remplacer black par gray, lightgray, green, red, etc. pour avoir la couleur de puce que tu désires
+\usetheme{Sybila} 
+\usepackage{pdfpages}
+%\usepackage[LGR,T1]{fontenc}
+%\usepackage[demo]{graphicx}
+\usepackage{graphicx}
+\usepackage{caption}
+%\usepackage{subcaption}
+\usepackage{multirow}
+\newcommand{\mn}[1]{\textbf{#1}}
+\usepackage{amsmath} % for \text command
+\usepackage{array}
+\usepackage{multicol}
+\newcolumntype{H}{>{\setbox0=\hbox\bgroup}c<{\egroup}@{}}
+
+
+\title[{\makebox[.45\paperwidth]{Automating Chiasmus Detection.\hfill%
+       \insertframenumber/\inserttotalframenumber}}]%ça c'est le titre que tu auras dans le pied de page de chaque slide
+{Machine Learning \\for Rhetorical Figure Detection:\\
+More Chiasmus with Less Annotation
+} % ça c'est le titre que tu auras sur la page de titre
+%\institute{\includegraphics[scale=0.05]{LogoNanterre.jpg} \ \& \includegraphics[scale=0.3]{Uppsala-Logo.jpg}}
+\institute{\includegraphics[scale=0.15]{images/UU_en_2}}
+\author{\textsc{Marie Dubremetz \& Joakim Nivre}}
+
+\date{Nodalida -  May 2017}
+
+\begin{document}
+
+%% --------------------------- SLIDE --------------------------------------------
+%\frame[t]{\includegraphics[scale=0.5]{logo-taln}}
+\frame[plain]{\titlepage} 
+
+%% 
+%% --------------------------- SLIDE --------------------------------------------
+%% ------------------------------------------------------------------------------
+%%%SLIDE de base
+%\frame[t]{ 
+%	\frametitle{Presentation Plan}
+%	\tableofcontents
+%	
+%}
+
+\section{Introduction }
+\frame[t]{
+	\frametitle{Introduction}
+
+
+\begin{center}
+\includegraphics[scale=0.4]{images/graine}
+\end{center}
+} %ce petit } sert à fermer la diapo
+
+%%------------------------------------------------------------------------------
+%% --------------------------- SLIDE --------------------------------------------
+
+\frame[t]{
+	\frametitle{Introduction \includegraphics[scale=0.05]{images/graine}}
+
+
+\begin{block}{Chiasmus/Antimetabole: Traditional Definition}
+A rhetorical figure in which two words are repeated in reverse order.\\
+\end{block}
+\visible<2->{
+\begin{block}{Example}
+
+%======Schéma=======
+\begin{figure}[h!] 
+\begin{center}
+\includegraphics[scale=0.45]{images/X}
+
+\label{graphX}
+\end{center}
+\end{figure}
+%======Schéma=======
+\end{block}
+%Add: Our definition = same lemma rhetorical effect
+}
+} %ce petit } sert à fermer la diapo
+
+%%------------------------------------------------------------------------------
+%% --------------------------- SLIDE --------------------------------------------
+
+\frame[t]{
+	\frametitle{Why Finding Chiasmus? \includegraphics[scale=0.05]{images/graine}}
+
+
+\begin{block}
+
+
+%======Schéma=======
+\begin{figure}[h!] 
+\begin{center}
+\includegraphics[scale=0.40]{images/cre}
+
+\label{graphX}
+\end{center}
+\end{figure}
+%======Schéma=======
+\end{block}
+\pause
+\begin{center}
+\begin{itemize}
+
+%\item Chiasmus tease the limits of computer recognition
+\item Practical: Text mining of master pieces and literature
+\pause
+\item Linguistic: Improve our general knowledge of the figure?
+\pause
+\item Proof of concept: If we can make it for chiasmus, you can hope to make it for more devices.
+\end{itemize}
+
+\end{center}
+} %ce petit } sert à fermer la diapo
+
+%%% --------------------------- SLIDE --------------------------------------------
+%%% ------------------------------------------------------------------------------
+\frame[t]{
+	\frametitle{State of the Art}
+\includegraphics[scale=0.8]{images/agriculture}
+}
+\frame[t]{
+	\frametitle{State of the Art \includegraphics[scale=0.08]{images/agriculture}}
+	\begin{block}{The research on chiasmus}	
+	\begin{itemize}
+	
+	
+	\item \citet{gawr}: Extract every double pair of words with reverse order without exception\\
+			 \textcolor{blue}{Chuck \textbf{Norris} does not fear \textbf{death}, \textbf{death} fears Chuck \textbf{Norris}}
+		\begin{itemize}
+		\item \textcolor{teal}{100\% recall }
+		\item \textcolor{purple}{Very low precision (< 1\%)
+		}
+		\end{itemize}
+		\end{itemize}
+	\begin{itemize}
+		\item \citet{hromada}: Identify not two but three pairs of reverted words\\
+\textcolor{blue}{\textbf{Love makes time} pass, \textbf{time makes love} pass.}
+		\begin{itemize}
+			\item \textcolor{teal}{Very high precision}
+%9 antimétaboles / 10
+			\item \textcolor{purple}{But low recall}
+				
+	\end{itemize}
+%\end{itemize}
+%	\begin{itemize}
+%		\item \citet{dubremetz2013}: stopwords + punctuations\\
+%
+%		\begin{itemize}
+%		\item {\color{teal}Intermediate recall/precision}
+%		\item {\color{purple}Still not adapted}
+%				
+%	\end{itemize}
+\end{itemize}
+
+
+\end{block}
+
+\vspace{0.2cm} 
+}
+
+%%% --------------------------- SLIDE --------------------------------------------
+%%% ------------------------------------------------------------------------------
+\frame[t]{
+	\frametitle{State of the Art \includegraphics[scale=0.08]{images/agriculture}}
+\begin{block}{Problem} 
+
+There are criss-cross patterns that are not chiasmi such as:\\ 
+\begin{center}
+{\color{blue}`\textbf{I} like beer from \textbf{time} to \textbf{time} but \textbf{I} prefer wine'}
+\end{center}
+\pause
+ They are frequent but chiasmi are rare.\\
+ Consequence: the annotation task was endless, there was no corpus available.
+
+\end{block}
+\visible<4->{
+\begin{center}
+\includegraphics[scale=0.8]{images/loupe}
+\end{center}
+ This is the problem of the needle in the haystack!
+} %ce petit } sert à fermer la diapo
+}
+%% --------------------------- SLIDE --------------------------------------------
+%% ------------------------------------------------------------------------------
+\frame[t]{
+	\frametitle{(Re-)Defining the Task \includegraphics[scale=0.08]{images/agriculture} }
+\visible<1->{
+\begin{block}{Hard constraints are not a solution} 
+
+\begin{center}
+
+\includegraphics[scale=0.2]{images/needle}
+%\includegraphics[scale=0.092]{images/trie}
+\includegraphics[scale=0.15]{images/burn}
+
+\end{center}
+\end{block}
+}
+\visible<2->{
+\begin{block}{...Why not outputting chiasmi in a sorted manner?} 
+\begin{center}
+\includegraphics[scale=0.2]{images/sortedNeedles}
+
+\end{center}
+
+\end{block}
+\citet{dubremetz2015}
+
+}
+} %ce petit } sert à fermer la diapo
+\section{Problem}
+%\section{Our Model}
+%\frame[t]{
+%	\frametitle{How Do We Sort?}
+%\begin{center}
+%	Any ranking is based on a score.
+%\end{center}
+%\begin{center}
+%\includegraphics[scale=0.2]{images/scoring}
+%\end{center}
+%\begin{center}
+%How does the computer score a chiasmus?
+%\end{center}
+%} %ce petit } sert à fermer la diapo
+%%% --------------------------- SLIDE --------------------------------------------
+%%% ------------------------------------------------------------------------------
+\frame[t]{
+	\frametitle{Features}
+
+\begin{center}
+\includegraphics[scale=0.3]{images/needStraw}
+\end{center}
+
+} 
+
+%% --------------------------- SLIDE --------------------------------------------
+%% ------------------------------------------------------------------------------
+\frame[t]{
+	\frametitle{Our Model \includegraphics[scale=0.03]{images/needStraw}}
+
+\begin{block}{A standard linear model} 
+
+So far 22 features have been successfully tested they encode:
+\only<1>{ stopwords, lexical clues, ngram similarity, size, tag and parsing features }
+\only<2>{
+\begin{multicols}{3}
+\begin{itemize}
+
+\item \#punct 
+\item \#softPunct 
+\item \#centralPunct 
+\item isInStopListA 
+\item isInStopListB 
+\item \#mainRep 
+\item \#diffSize 
+\item \#toksInBC 
+\item exactMatch 
+\item \#sameTok 
+\item simScore 
+\item \#sameBigram 
+\item \#sameTrigram 
+\item \#sameCont 
+\item hasConj 
+\item hasNeg 
+\item hasTo 
+\item sameTag 
+\item \#sameDep$W_a$ $W_b'$ 
+\item \#sameDep$W_b$ $W_a'$ 
+\item \#sameDep$W_a$ $W_a'$ 
+\item \#sameDep$W_b$ $W_b'$ 
+\end{itemize}
+\end{multicols}
+}
+\end{block}
+
+
+} %ce petit } sert à fermer la diapo
+%/////////////////
+%% --------------------------- SLIDE --------------------------------------------
+%% ------------------------------------------------------------------------------
+\frame[t]{
+	\frametitle{An Example of Features}
+	\begin{block}
+	
+
+\begin{center}
+\includegraphics[scale=0.8]{images/example3}
+\end{center}
+	\end{block}
+\begin{center}
+How our algorithm sorts criss-cross patterns:\\
+5 representative examples of our 22 features
+\end{center}
+} %ce petit } sert à fermer la diapo
+
+
+%%% --------------------------- SLIDE --------------------------------------------
+%%% ------------------------------------------------------------------------------
+\frame[t]{
+	\frametitle{How Do We Score? An Example of Features \includegraphics[scale=0.03]{images/needStraw}}
+	\begin{block}
+
+
+\begin{center}
+\includegraphics[scale=0.8]{images/exampleNegG}
+\end{center}
+	\end{block}
+\begin{center}
+How our algorithm sorts criss-cross patterns:\\
+3 other representative examples of our 22 features
+\end{center}
+} %ce petit } sert à fermer la diapo
+
+
+
+%% --------------------------- SLIDE --------------------------------------------
+%% ------------------------------------------------------------------------------
+\frame[t]{
+	\frametitle{Problem\includegraphics[scale=0.08]{images/emptyplate}}
+\begin{center}
+Before 2015 there was no data to fit the system. 
+
+\includegraphics[scale=0.5]{images/emptyplate}
+\end{center}
+
+} %ce petit } sert à fermer la diapo
+%% --------------------------- SLIDE --------------------------------------------
+%% ------------------------------------------------------------------------------
+\frame[t]{
+	\frametitle{Problem\includegraphics[scale=0.08]{images/emptyplate}}
+But the hand tuned systems of 2015+2016 allowed selective annotation: we have more annotated data than before! 3000/2M instances, with up to 31 Real Positives!
+\only<1>{
+\begin{center}
+\includegraphics[scale=0.35]{images/emptyplate}
+\end{center}
+}
+\only<2>{
+\begin{center}
+\includegraphics[scale=0.35]{images/tomatoe}
+\end{center}
+}
+\pause
+	\begin{alertblock}
+	
+	Is 0,15\% of the corpus with only 31 true instances really enough to tune the weights automatically?
+
+
+	\end{alertblock}
+
+
+} %ce petit } sert à fermer la diapo
+
+%%% --------------------------- SLIDE --------------------------------------------
+%%% ------------------------------------------------------------------------------
+
+\frame[t]{
+	\frametitle{Experimental Set Up}
+
+\begin{center}
+\includegraphics[scale=1.2]{images/SetUp}
+\end{center}
+
+} 
+\frame[t]{
+	\frametitle{Experimental Set Up \includegraphics[scale=0.1]{images/SetUp}}{
+\begin{itemize}
+\item Corpus \includegraphics[scale=0.08]{images/english}
+\item[-]Parliament proceedings \includegraphics[scale=0.04]{images/debate}
+\item[-]Training: 4 M words, 2 M instances, 3000 single annotated, 296 Doubly annotated, 31 Pos.
+\item[-]Test:2 M words, 1M instances
+\item Annotation
+
+\item[-]2 annotators \includegraphics[scale=0.07]{images/yesno}
+\item[-] Instances true for both annotators=True. 
+\item[-] Other instances (incl. unknown)=False
+\item Techniques and Tools
+\item[-] Evaluation with average precision
+\item[-] Stanford Parser and Tagger (CoreNLP) 
+\item[-] Sklearn: Logistic regression
+
+\end{itemize}
+}
+}
+
+%%% --------------------------- SLIDE --------------------------------------------
+%%% ------------------------------------------------------------------------------
+
+\frame[t]{
+	\frametitle{Results}
+
+\begin{center}
+\includegraphics[scale=0.55]{images/agri}
+\end{center}
+
+} 
+
+%% --------------------------- SLIDE --------------------------------------------
+%% ------------------------------------------------------------------------------
+%\section{Generalisation \includegraphics[scale=0.04]{images/agri}}
+\frame[t]{
+	\frametitle{Results \includegraphics[scale=0.05]{images/agri}}
+\begin{center}
+	\resizebox{1.1\textheight}{!}{
+%=============TABLEAU=========
+%\begin{table*}
+%\small
+
+\begin{tabular}{|ll|r|r|r|r|}
+\hline 
+\multicolumn{2}{|l|}{\textbf{Model}}  & \textbf{Avg Precision} &\bf Precision & \bf Recall & \bf F1-score \\
+\hline 
+\hline 
+
+Machine & Base & 57.1& 80.0 & 30.8 & 44.4 \tabularnewline
+\hline 
+Machine & All features & \textbf{70.8}& \textbf{90.0} & \textbf{69.2} & \textbf{78.3} \tabularnewline
+\hline 
+\hline
+%\multicolumn{5}{|l|}{Dubremetz and Nivre \shortcite{dubremetz2015,dubremetz2016}} \tabularnewline
+%\hline 
+Human & Base &42.5  & -- & -- & -- \\
+
+\hline 
+Human &All features &67.7& -- & -- & -- \tabularnewline%and quotes
+\hline 
+
+\end{tabular}
+
+
+\label{results}
+
+%\end{table*}
+
+}
+%%=============TABLEAU=========
+\end{center}
+Results for logistic regression model (Machine) with comparison to the hand-tuned models of Dubremetz and Nivre (2015; 2016) (Human). \\
+
+
+
+Evaluation with 13 Pos. instances in the test set. \\
+Inter annotator agreement $\kappa$ = 0.69\\
+A system very precise with only borderline cases as false positives. 
+
+} %ce petit } sert à fermer la diapo
+
+%%% --------------------------- SLIDE --------------------------------------------
+%%% ------------------------------------------------------------------------------
+
+\frame[t]{
+	\frametitle{Results \includegraphics[scale=0.05]{images/agri}}
+
+\begin{center}
+\begin{figure}[t]
+\includegraphics[scale=0.27]{images/HumMach}
+%\caption{Feature weights from machine learning and hand-tuning, normalized to the interval [0, 1]}
+\label{featscale}
+\end{figure}
+\end{center}
+
+} 
+
+\frame[t]{
+	\frametitle{Discussion and Perspectives}
+
+\begin{center}
+\includegraphics[scale=0.3]{images/field}
+\end{center}
+
+} 
+
+%% --------------------------- SLIDE --------------------------------------------
+%% ------------------------------------------------------------------------------
+
+\frame[t]{
+	\frametitle{Future Work \includegraphics[scale=0.05]{images/field}}
+	\begin{block}
+	
+
+\begin{itemize}
+%\item Statistical significance? Results on 19 true occurrences
+%\item From hand-tuned weights to machine learning
+
+
+\item Apply our method to other devices? Anaphora? Epiphora? %...Metaphora?
+\item Apply on other corpus
+\end{itemize}
+	\end{block}
+
+} %ce petit } sert à fermer la diapo
+
+%% --------------------------- SLIDE --------------------------------------------
+%% ------------------------------------------------------------------------------
+\frame[t]{
+	\frametitle{Contributions \includegraphics[scale=0.05]{images/field}}
+	\begin{block}
+	
+	
+\begin{enumerate}
+
+
+
+\item[-] Proof of concept: Machine Learning on Chiasmus is possible with little (but well chosen) data
+\item[-] Additional knowledge about the features. Humans and Machine globally agree on what are the positive/negative features.
+\end{enumerate}
+\end{block}
+\begin{center}
+and
+\end{center}
+\pause
+\begin{alertblock}
+
+%A system that works on any text file! Demonstration?
+\begin{itemize}
+
+
+\item \href{http://stp.lingfil.uu.se/~marie/corpus/quote_chiasmus.txt}{Quotes}, 36 000 quotes, 800 000 words%36,165 quotes 878,450 words
+
+
+\item \href{http://stp.lingfil.uu.se/~marie/corpus/WaterStone_chiasmus.txt}{Water Stone}, 192 000 titles, 900 000 words (Literature corpus) %192,506 Titles, 896,716 words
+\item \href{http://stp.lingfil.uu.se/~marie/corpus/dblpScience192_chiasmus.txt}{DBLP}, 192 000 titles, 2 M words (Computer science corpus) %192,506 Titles, 896,716 words
+\end{itemize}
+\end{alertblock}
+
+} %ce petit } sert à fermer la diapo
+%% --------------------------- SLIDE --------------------------------------------
+%% ------------------------------------------------------------------------------
+
+\frame[t]{
+	\frametitle{Take home message}
+\begin{block}{\textit{Summary}}
+Today you discovered:
+\begin{itemize}
+\item Chiasmus
+\item You don't need to annotate millions of examples to get a descent result for machine learning.
+\item Condition: preselect well your annotation pool through hand tuned features
+\item Promising results for detection of repetitive figures in general: feasible task at a low cost. 
+
+\end{itemize}
+\end{block}
+
+} %ce petit } sert à fermer la diapo
+%% --------------------------- SLIDE --------------------------------------------
+%% ------------------------------------------------------------------------------
+
+\frame[t]{
+	\frametitle{Thank You!}
+
+Questions?
+} %ce petit } sert à fermer la diapo
+
+%% --------------------------- SLIDE --------------------------------------------
+%% ------------------------------------------------------------------------------
+
+\frame[t]{
+	\frametitle{Bonus: a Chiasmus Viewed by a Computer}
+\begin{block}{\textit{If the \textbf{mountain} won't come to \textbf{Mohammed}, then let's take \textbf{Mohammed} to the \textbf{mountain}.} (In binary.)}
+\tiny
+01001001 01100110 00100000 01110100 01101000 01100101 00100000 01101101 01101111 01110101 01101110 01110100 01100001 01101001 01101110 00100000 01110111 01101111 01101110 00100111 01110100 00100000 01100011 01101111 01101101 01100101 00100000 01110100 01101111 00100000 01001101 01101111 01101000 01100001 01101101 01101101 01100101 01100100 00101100 00100000 01110100 01101000 01100101 01101110 00100000 01101100 01100101 01110100 00100111 01110011 00100000 01110100 01100001 01101011 01100101 00100000 01001101 01101111 01101000 01100001 01101101 01101101 01100101 01100100 00100000 01110100 01101111 00100000 01110100 01101000 01100101 00100000 01101101 01101111 01110101 01101110 01110100 01100001 01101001 01101110 00101110
+\end{block}
+
+} %ce petit } sert à fermer la diapo
+
+
+%% --------------------------- SLIDE --------------------------------------------
+%% ------------------------------------------------------------------------------
+
+
+\frame[t]{
+\frametitle{References}
+\vspace{0.2cm}  %J'ajoute un petit espace pour aérer le tout!
+\def\newblock{\hskip .11em plus .33em minus .07em} % important line
+\bibliographystyle{newapa}
+%\bibliographystyle{apalike-fr}%attention erreure générée lorsque plus de 1 auteur
+%\def\bblbc{a.Chr.}
+\bibliography{biblio/Chiasm_CLFL2016}
+System, corpus, annotation available at:  \url{http://stp.lingfil.uu.se/~marie/chiasme.htm}.
+
+
+}
+
+%% --------------------------- SLIDE --------------------------------------------
+%% ------------------------------------------------------------------------------
+
+
+\frame[t]{
+\frametitle{References}
+
+System, corpus, annotation available at:  \url{http://stp.lingfil.uu.se/~marie/chiasme.htm}.
+
+
+}
+
+%% --------------------------- SLIDE --------------------------------------------
+%% ------------------------------------------------------------------------------
+\end{document}
