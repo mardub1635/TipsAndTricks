@@ -1,4 +1,4 @@
-Author: Marie Dubremetz
+
 
 **Description**
 This folder contains documents and scripts I have created during my PhD at Uppsala University (2013-2018). That can serve you as template if you are also a PhD student there.
@@ -11,8 +11,8 @@ Reference to my thesis:
 		 
 **Disclaimer**
 
-This is a totally unofficial documents, they are not to be published or reproduced and are intended for private use only.
+This is totally unofficial documents, they are not to be published and are intended for private use only.
 
 **Contact**
 
-Marie Dubremetz. firstname.lastname@lingfil.uu.se
+Author: Marie Dubremetz. firstname@stp.lingfil.uu.se
